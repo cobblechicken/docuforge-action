@@ -1,0 +1,29 @@
+name: 'DocuForge AI Documentation Engine'
+description: 'Automatically generates updated architecture diagrams and markdown docs on code changes.'
+inputs:
+  api_key:
+    description: 'DocuForge API Key for unlimited runs'
+    required: false
+  output_file:
+    description: 'Output filename for markdown documentation'
+    required: false
+    default: 'DOCUMENTATION.md'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run DocuForge CLI
+      run: npx docuforge-cli --key "${{ inputs.api_key }}" --output "${{ inputs.output_file }}"
+      shell: bash
+
+    - name: Commit and Push Updated Documentation
+      run: |
+        git config --global user.name 'docuforge-bot'
+        git config --global user.email 'bot@docuforge.ai'
+        git add ${{ inputs.output_file }}
+        git diff --quiet && git diff --staged --quiet || (git commit -m "docs: auto-generate updated architecture" && git push)
+      shell: bash
